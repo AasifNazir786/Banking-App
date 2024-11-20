@@ -34,7 +34,7 @@ func CreateAccountHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(account)
-
+	return
 }
 
 func DepositHandler(w http.ResponseWriter, r *http.Request) {
@@ -49,14 +49,16 @@ func DepositHandler(w http.ResponseWriter, r *http.Request) {
 	account, err := services.Deposit(id, float64(amount))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
+		return
 	}
 
-	transaction := services.RecordTransaction(id, "deposit", "deposited funds", float64(amount))
+	transaction := services.RecordTransaction(id, "deposit", "deposited funds: "+strconv.Itoa(amount), float64(amount))
 
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"account":     account,
 		"transaction": transaction,
 	})
+	return
 }
 
 func WithdrawHandler(w http.ResponseWriter, r *http.Request) {
@@ -68,28 +70,41 @@ func WithdrawHandler(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(r.URL.Query().Get("id"))
 	amount, _ := strconv.Atoi(r.URL.Query().Get("amount"))
 
-	for i := range accounts {
-		if accounts[i].Id == id {
-			if accounts[i].Balance < float64(amount) {
-				http.Error(w, "Insufficient Balance", http.StatusBadRequest)
-				return
-			}
-			accounts[i].Balance -= float64(amount)
-			json.NewEncoder(w).Encode(accounts[i])
-			return
-		}
+	account, err := services.Withdraw(id, float64(amount))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
-	http.Error(w, "Account Not Found", http.StatusNotFound)
+
+	transaction := services.RecordTransaction(id, "withdraw", "Credited funds: "+strconv.Itoa(amount), float64(amount))
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"account":     account,
+		"transaction": transaction,
+	})
+	return
 }
 
 func CheckBalanceHandler(w http.ResponseWriter, r *http.Request) {
-	id, _ := strconv.Atoi(r.URL.Query().Get("id"))
-
-	for _, account := range accounts {
-		if account.Id == id {
-			json.NewEncoder(w).Encode(account)
-			return
-		}
+	idStr := r.URL.Query().Get("id")
+	if idStr == "" {
+		http.Error(w, "Missing 'id' query parameter", http.StatusBadRequest)
+		return
 	}
-	http.Error(w, "Account Not Found", http.StatusNotFound)
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid 'id' query parameter", http.StatusBadRequest)
+		return
+	}
+
+	account, err := services.CheckBalance(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	json.NewEncoder(w).Encode(account)
+	return
+
 }

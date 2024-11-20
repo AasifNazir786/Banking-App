@@ -1,5 +1,6 @@
 package models
 
+// enum type
 type AccountType string
 
 const (
