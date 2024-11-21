@@ -15,12 +15,12 @@ func TransferHandler(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
-	toId, err := strconv.Atoi(r.URL.Query().Get("id"))
+	toId, err := strconv.Atoi(r.URL.Query().Get("toid"))
 	if err != nil {
 		http.Error(w, "Not valid Id", http.StatusBadRequest)
 		return
 	}
-	fromId, err := strconv.Atoi(r.URL.Query().Get("id"))
+	fromId, err := strconv.Atoi(r.URL.Query().Get("fromid"))
 	if err != nil {
 		http.Error(w, "Not valid Id", http.StatusBadRequest)
 		return
