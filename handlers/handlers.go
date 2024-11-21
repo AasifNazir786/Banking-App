@@ -3,13 +3,10 @@ package handlers
 import (
 	"Go-GitHub-Projects/Banking-App/models"
 	"Go-GitHub-Projects/Banking-App/services"
-	"Go-GitHub-Projects/Banking-App/storage"
 	"encoding/json"
 	"net/http"
 	"strconv"
 )
-
-var accounts = storage.GetAccounts()
 
 func CreateAccountHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -34,7 +31,6 @@ func CreateAccountHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(account)
-	return
 }
 
 func DepositHandler(w http.ResponseWriter, r *http.Request) {
@@ -58,7 +54,6 @@ func DepositHandler(w http.ResponseWriter, r *http.Request) {
 		"account":     account,
 		"transaction": transaction,
 	})
-	return
 }
 
 func WithdrawHandler(w http.ResponseWriter, r *http.Request) {
@@ -82,7 +77,6 @@ func WithdrawHandler(w http.ResponseWriter, r *http.Request) {
 		"account":     account,
 		"transaction": transaction,
 	})
-	return
 }
 
 func CheckBalanceHandler(w http.ResponseWriter, r *http.Request) {
@@ -105,6 +99,4 @@ func CheckBalanceHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(account)
-	return
-
 }

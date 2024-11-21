@@ -12,6 +12,7 @@ func main() {
 	http.HandleFunc("/deposit", handlers.DepositHandler)
 	http.HandleFunc("/withdraw", handlers.WithdrawHandler)
 	http.HandleFunc("/balance", handlers.CheckBalanceHandler)
+	http.HandleFunc("/transfer", handlers.TransferHandler)
 
 	log.Println("Server running on http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
