@@ -2,13 +2,28 @@ package main
 
 import (
 	"Go-GitHub-Projects/Banking-App/handlers"
+	"Go-GitHub-Projects/Banking-App/services"
+	"Go-GitHub-Projects/Banking-App/storage"
 	"log"
 	"net/http"
 )
 
 func main() {
 
-	http.HandleFunc("/create-account", handlers.CreateAccountHandler)
+	if err := storage.InitDB(); err != nil {
+
+		log.Fatalf("Failed to initialize the database: %v", err)
+	}
+
+	defer storage.CloseDB()
+
+	db := storage.GetDB()
+
+	accountStorage := storage.NewAccountStorage(db)
+	accountService := services.NewAccountService(accountStorage)
+	accountHandler := handlers.NewAccountHandler(accountService)
+
+	http.HandleFunc("/create-account", accountHandler.CreateAccountHandler)
 	http.HandleFunc("/deposit", handlers.DepositHandler)
 	http.HandleFunc("/withdraw", handlers.WithdrawHandler)
 	http.HandleFunc("/balance", handlers.CheckBalanceHandler)
