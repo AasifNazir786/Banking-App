@@ -67,7 +67,7 @@ func (s *AccountService) TransferFrom_To(fromId, toId int, amount float64) error
 	}
 
 	if fromAccount.Balance < amount {
-		return fmt.Errorf("Insufficient Balance of accountId: %d", fromId)
+		return fmt.Errorf("insufficient balance of accountId: %d", fromId)
 	}
 
 	fromAccount.Balance -= amount
@@ -86,4 +86,30 @@ func (s *AccountService) TransferFrom_To(fromId, toId int, amount float64) error
 	}
 
 	return nil
+}
+
+func (s *AccountService) Withdraw_(id int, amount float64) (models.Account, error) {
+
+	if amount <= 0 {
+		return models.Account{}, fmt.Errorf("invalid withdrawal amount: %.2f", amount)
+	}
+
+	account, err := s.storage.GetAccountById(id)
+
+	if err != nil {
+
+		return models.Account{}, err
+	}
+	if account.Balance < amount {
+
+		return models.Account{}, fmt.Errorf("insufficient balance")
+	}
+	account.Balance -= amount
+
+	if err := s.storage.UpdateAccount(id, account); err != nil {
+
+		return models.Account{}, fmt.Errorf("could not update account: %w", err)
+	}
+
+	return account, nil
 }
