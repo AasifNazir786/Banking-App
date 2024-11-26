@@ -20,19 +20,23 @@ func NewAccountStorage(db *sql.DB) *AccountStorage {
 func (d *AccountStorage) AddAccount(account models.Account) (int, error) {
 
 	query := `INSERT INTO accounts (name, balance, account_type)
-	VALUES($1, $2, $3) RETURNING id`
+											VALUES($1, $2, $3) RETURNING id`
 
 	var id int
+
 	err := d.db.QueryRow(query, account.Name, account.Balance, account.AccountType).Scan(&id)
+
 	if err != nil {
+
 		return 0, fmt.Errorf("failed to insert account: %w", err)
 	}
+
 	return id, nil
 }
 
 func (d *AccountStorage) GetAccountById(id int) (models.Account, error) {
 	query := `SELECT * FROM accounts
-	WHERE id = $1`
+								WHERE id = $1`
 
 	var account models.Account
 	err := d.db.QueryRow(query, id).Scan(&account.Id, &account.Name, &account.Balance, &account.AccountType)
@@ -62,12 +66,12 @@ func (d *AccountStorage) GetAllAccounts() ([]models.Account, error) {
 	return accounts, nil
 }
 
-func (d *AccountStorage) UpdateAccount(id int, updatedAccount models.Account) error {
+func (d *AccountStorage) UpdateAccount(updatedAccount models.Account) error {
 	query := `UPDATE accounts
 	SET name = $1, balance = $2, account_type = $3
 	WHERE id = $4`
 
-	_, err := d.db.Exec(query, updatedAccount.Name, updatedAccount.Balance, updatedAccount.AccountType, id)
+	_, err := d.db.Exec(query, updatedAccount.Name, updatedAccount.Balance, updatedAccount.AccountType, updatedAccount.Id)
 
 	if err != nil {
 		return err

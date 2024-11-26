@@ -19,8 +19,11 @@ func main() {
 
 	db := storage.GetDB()
 
+	transactionStorage := storage.NewTransactionStorage(db)
+	transactionService := services.NewTransactionService(transactionStorage)
+
 	accountStorage := storage.NewAccountStorage(db)
-	accountService := services.NewAccountService(accountStorage)
+	accountService := services.NewAccountService(accountStorage, transactionService)
 	accountHandler := handlers.NewAccountHandler(accountService)
 
 	http.HandleFunc("/create-account", accountHandler.CreateAccountHandler)
