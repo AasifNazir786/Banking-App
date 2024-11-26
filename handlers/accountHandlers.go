@@ -4,6 +4,7 @@ import (
 	"Go-GitHub-Projects/Banking-App/models"
 	"Go-GitHub-Projects/Banking-App/services"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 )
@@ -106,24 +107,28 @@ func (h *AccountHandler) Transfer(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, "not valid toId", http.StatusNotAcceptable)
+		return
 	}
 
 	fromId, err := strconv.Atoi(r.URL.Query().Get("fromId"))
 
 	if err != nil {
 		http.Error(w, "not valid fromId", http.StatusNotAcceptable)
+		return
 	}
 
 	amount, _ := strconv.Atoi(r.URL.Query().Get("amount"))
 
 	if amount <= 0 {
 		http.Error(w, "amount should be positive", http.StatusNotAcceptable)
+		return
 	}
 
 	err = h.service.TransferFrom_To(fromId, toId, float64(amount))
 
 	if err != nil {
 		http.Error(w, "Can't transfer money", http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -135,11 +140,18 @@ func (h *AccountHandler) Transfer(w http.ResponseWriter, r *http.Request) {
 
 func (h *AccountHandler) WithdrawHandler(w http.ResponseWriter, r *http.Request) {
 
+	if r.Method != http.MethodPost {
+
+		http.Error(w, "ONLY POST METHOD IS ALLOWED", http.StatusMethodNotAllowed)
+		return
+	}
+
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 
 	if err != nil {
 
 		http.Error(w, "error parsing id", http.StatusBadRequest)
+		return
 	}
 
 	amount, err := strconv.Atoi(r.URL.Query().Get("amount"))
@@ -147,16 +159,66 @@ func (h *AccountHandler) WithdrawHandler(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 
 		http.Error(w, "error parsing amount", http.StatusBadRequest)
+		return
 	}
 
-	account, err := h.service.Withdraw_(id, float64(amount))
+	err = h.service.Withdraw_(id, float64(amount))
 
 	if err != nil {
 
 		http.Error(w, err.Error(), http.StatusNotFound)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(account)
+
+	message := fmt.Sprintf("Successfully withdrew from account ID: %d", id)
+
+	json.NewEncoder(w).Encode(map[string]string{
+		"message ": message,
+	})
+}
+
+func (h *AccountHandler) DepositHandler(w http.ResponseWriter, r *http.Request) {
+
+	if r.Method != http.MethodPost {
+
+		http.Error(w, "ONLY POST METHOD IS ALLOWED", http.StatusMethodNotAllowed)
+		return
+	}
+
+	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+
+	if err != nil {
+
+		http.Error(w, "error parsing id", http.StatusBadRequest)
+		return
+	}
+
+	amount, err := strconv.Atoi(r.URL.Query().Get("amount"))
+
+	if err != nil {
+
+		http.Error(w, "error parsing amount", http.StatusBadRequest)
+		return
+	}
+
+	err = h.service.Deposit(id, float64(amount))
+
+	if err != nil {
+
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	message := fmt.Sprintf("Successfully Deposited from Account Id: %d", id)
+
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": message,
+	})
+
 }
