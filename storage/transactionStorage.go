@@ -4,6 +4,7 @@ import (
 	"Go-GitHub-Projects/Banking-App/models"
 	"database/sql"
 	"fmt"
+	"time"
 )
 
 type TransactionStorage struct {
@@ -24,13 +25,36 @@ func (s *TransactionStorage) AddTransaction(transaction models.Transaction) (int
 	var id int
 
 	err := s.db.QueryRow(query, transaction.AccountId, transaction.Amount,
-		transaction.Type, transaction.TimeStamp, transaction.Description).Scan(&id)
+		transaction.Type, transaction.Date, transaction.Description).Scan(&id)
 	if err != nil {
 
 		return 0, fmt.Errorf("failed to insert transaction %w", err)
 	}
 
 	return id, nil
+}
+
+func (s *TransactionStorage) GetTransactionsFromDB(accountID int, startDate, endDate time.Time) ([]models.Transaction, error) {
+
+	query := `SELECT * FROM transactions
+				WHERE account_id = $1 AND date BETWEEN $2 AND $3`
+
+	rows, err := s.db.Query(query, accountID, startDate, endDate)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var transactions []models.Transaction
+	for rows.Next() {
+		var t models.Transaction
+		if err := rows.Scan(&t.Id, &t.AccountId, &t.Amount, &t.Date, &t.Description); err != nil {
+			return nil, err
+		}
+		transactions = append(transactions, t)
+	}
+	return transactions, nil
 }
 
 func (s *TransactionStorage) GetTransactionById(id int) (models.Transaction, error) {
@@ -41,7 +65,7 @@ func (s *TransactionStorage) GetTransactionById(id int) (models.Transaction, err
 	var transaction models.Transaction
 
 	err := s.db.QueryRow(query, id).Scan(&transaction.Id, &transaction.AccountId,
-		&transaction.Amount, &transaction.Type, &transaction.TimeStamp, &transaction.Description)
+		&transaction.Amount, &transaction.Type, &transaction.Date, &transaction.Description)
 
 	if err != nil {
 		return models.Transaction{}, fmt.Errorf("can't retrieve transaction")
@@ -66,7 +90,7 @@ func (s *TransactionStorage) GetAllTransactions() ([]models.Transaction, error) 
 		var transaction models.Transaction
 
 		if err := rows.Scan(&transaction.Id, &transaction.AccountId, &transaction.Amount,
-			&transaction.Type, &transaction.TimeStamp, &transaction.Description); err != nil {
+			&transaction.Type, &transaction.Date, &transaction.Description); err != nil {
 
 			return []models.Transaction{}, fmt.Errorf("can't retrieve transaction")
 		}
@@ -95,7 +119,7 @@ func (s *TransactionStorage) GetAllByAccountId(accountId int) ([]models.Transact
 		var transaction models.Transaction
 
 		if err := rows.Scan(&transaction.Id, &transaction.AccountId, &transaction.Amount,
-			&transaction.Type, &transaction.TimeStamp, &transaction.Description); err != nil {
+			&transaction.Type, &transaction.Date, &transaction.Description); err != nil {
 
 			return []models.Transaction{}, fmt.Errorf("can't retrieve transaction")
 		}
@@ -113,7 +137,7 @@ func (s *TransactionStorage) UpdateTransaction(updatedTransaction models.Transac
 				WHERE id = $6`
 
 	_, err := s.db.Exec(query, updatedTransaction.AccountId, updatedTransaction.Amount,
-		updatedTransaction.Type, updatedTransaction.TimeStamp, updatedTransaction.Description, updatedTransaction.Id)
+		updatedTransaction.Type, updatedTransaction.Date, updatedTransaction.Description, updatedTransaction.Id)
 
 	if err != nil {
 

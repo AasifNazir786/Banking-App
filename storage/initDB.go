@@ -7,6 +7,10 @@ import (
 
 var db *sql.DB
 
+type DB struct {
+	*sql.DB
+}
+
 func InitDB() error {
 	connStr := "name=postgres password=njasm786 dbname=banking-DB sslmode=disable"
 	var err error

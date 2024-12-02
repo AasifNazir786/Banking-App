@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type TransactionType string
 
 const (
@@ -13,6 +15,6 @@ type Transaction struct {
 	AccountId   int             `json:"account_id"`
 	Amount      float64         `json:"amount"`
 	Type        TransactionType `json:"type"`
-	TimeStamp   string          `json:"time_stamp"`
+	Date        time.Time       `json:"date"`
 	Description string          `json:"description"`
 }

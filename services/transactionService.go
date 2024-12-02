@@ -24,7 +24,7 @@ func (s *TransactionService) SaveTransaction(accountId int, amount float64,
 		AccountId:   accountId,
 		Amount:      amount,
 		Type:        tType,
-		TimeStamp:   time.Now().Format(time.RFC3339),
+		Date:        time.Now(),
 		Description: description,
 	}
 
@@ -37,6 +37,16 @@ func (s *TransactionService) SaveTransaction(accountId int, amount float64,
 	transaction.Id = id
 
 	return transaction, nil
+}
+
+func (s *TransactionService) GetAllByDates(accountId int, start, end time.Time) ([]models.Transaction, error) {
+
+	transactions, err := s.storage.GetTransactionsFromDB(accountId, start, end)
+	if err != nil {
+		return nil, err
+	}
+
+	return transactions, nil
 }
 
 // func (s *TransactionService) UpdateTransaction(transaction models.Transaction) error {
