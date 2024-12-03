@@ -11,7 +11,7 @@ import (
 
 type UserServiceInterface interface {
 	RegisterUser(userName string, password string) error
-	AuthenticateUser(user models.AccountHolder) (string, error)
+	AuthenticateUser(user *models.AccountHolder) (string, error)
 }
 
 type UserService struct {

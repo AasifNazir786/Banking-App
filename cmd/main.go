@@ -26,9 +26,17 @@ func main() {
 
 	db := storage.GetDB()
 
+	userRepo := storage.NewUserRepository(db)
+	userService := services.NewUserService(userRepo)
+	userHandler := handlers.NewUserHandler(userService)
+
+	http.HandleFunc("/register", userHandler.UserRegisterHandler)
+	http.HandleFunc("/login", userHandler.UserLoginHandler)
+
 	transactionStorage := storage.NewTransactionStorage(db)
 	transactionService := services.NewTransactionService(transactionStorage)
 	transactionHandler := handlers.NewTransactionHandler(transactionService)
+
 	accountStorage := storage.NewAccountStorage(db)
 	accountService := services.NewAccountService(accountStorage, transactionService)
 	accountHandler := handlers.NewAccountHandler(accountService)
