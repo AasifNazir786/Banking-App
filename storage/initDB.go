@@ -2,7 +2,9 @@ package storage
 
 import (
 	"database/sql"
-	"errors"
+	"fmt"
+
+	_ "github.com/lib/pq"
 )
 
 var db *sql.DB
@@ -12,15 +14,15 @@ type DB struct {
 }
 
 func InitDB() error {
-	connStr := "name=postgres password=njasm786 dbname=banking-DB sslmode=disable"
+	connStr := "user=postgres password=njasm786 dbname=banking-DB sslmode=disable"
 	var err error
 	db, err = sql.Open("postgres", connStr)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to open database connection: %v", err)
 	}
 
 	if err = db.Ping(); err != nil {
-		return errors.New("database connection is not alive")
+		return fmt.Errorf("failed to ping database: %v", err)
 	}
 	return nil
 }

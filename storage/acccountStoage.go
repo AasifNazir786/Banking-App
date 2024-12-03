@@ -21,7 +21,6 @@ func (d *AccountStorage) AddAccount(account models.Account) (int, error) {
 
 	query := `INSERT INTO accounts (name, balance, account_type)
 											VALUES($1, $2, $3) RETURNING id`
-
 	var id int
 
 	err := d.db.QueryRow(query, account.Name, account.Balance, account.AccountType).Scan(&id)
